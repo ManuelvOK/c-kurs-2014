@@ -9,7 +9,7 @@ struct GameObject {
     int posY;
     const char* symbol;
     const char* name;
-    int Health;
+    int health;
     struct GameObject* next;
 };
 
@@ -19,8 +19,8 @@ struct GameObject {
 const unsigned int cols = 20;
 const unsigned int rows = 10;
 const unsigned int yOff = 4;
-struct GameObject* pPlayer = NULL;
-struct GameObject* pListOfMonsters = NULL;
+struct GameObject* player = NULL;
+struct GameObject* monsters = NULL;
 
 void moveGameObject(struct GameObject* obj, unsigned int x, unsigned int y) {
     if( !obj)
@@ -38,27 +38,27 @@ void moveGameObject(struct GameObject* obj, unsigned int x, unsigned int y) {
 }
 
 void addMonster(struct GameObject* newMonster) {
-    struct GameObject* pCurrentMonster = NULL;
+    struct GameObject* currentMonster = NULL;
 
-    if (pListOfMonsters == NULL) {
+    if (monsters == NULL) {
         // If there are no monsters yet, add the first as the head of the list.
-        pListOfMonsters = newMonster;
+        monsters = newMonster;
     }
     else {
         /* If we can access the head of the list, we can easily access all other list elements
          * by using the "next" pointer within each GameObject.
          */
-        pCurrentMonster = pListOfMonsters;
-        while (pCurrentMonster != NULL ) {
-            if (pCurrentMonster->next == NULL) {
+        currentMonster = monsters;
+        while (currentMonster != NULL ) {
+            if (currentMonster->next == NULL) {
                 // We reached the last element of the list, append the new one,
                 // then break the loop.
-                pCurrentMonster->next = newMonster;
+                currentMonster->next = newMonster;
                 break;
             }
             else {
                 // we haven't reached the last element yet, so go on...
-                pCurrentMonster = pCurrentMonster->next;
+                currentMonster = currentMonster->next;
             }
         }
     }
@@ -93,16 +93,16 @@ void setUpGame() {
      *           Otherwise, the reserved memory becomes unreachable, what is pretty bad indeed.
      *           Practice safe coding!!!
      */
-    pPlayer = (struct GameObject*) malloc(sizeof(*pPlayer));
+    player = (struct GameObject*) malloc(sizeof(*player));
     // After malloc(), always check if the allocation process succeeded.
-    if (pPlayer) {
-        pPlayer->Health = 100;
-        pPlayer->name = "Jack Black";
-        pPlayer->symbol = "J";
-        pPlayer->next = NULL;
-        pPlayer->posX = 3;
-        pPlayer->posY = 5;
-        moveGameObject(pPlayer, pPlayer->posX, pPlayer->posY);
+    if (player) {
+        player->health = 100;
+        player->name = "Jack Black";
+        player->symbol = "J";
+        player->next = NULL;
+        player->posX = 3;
+        player->posY = 5;
+        moveGameObject(player, player->posX, player->posY);
 
     }
     else {
@@ -115,7 +115,7 @@ void setUpGame() {
     // now, add the first monster to the list of all monsters. He's the evil boss!
     newMonster = (struct GameObject*) malloc(sizeof(struct GameObject));
     if (newMonster) {
-        newMonster->Health = 100;
+        newMonster->health = 100;
         newMonster->name = "Aaargghh!!!";
         newMonster->symbol = "x";
         newMonster->next = NULL;
@@ -130,7 +130,7 @@ void setUpGame() {
     // add another monster to the list.
     newMonster = (struct GameObject*) malloc(sizeof(struct GameObject));
     if (newMonster) {
-        newMonster->Health = 100;
+        newMonster->health = 100;
         newMonster->name = "Kevin";
         newMonster->symbol = "$";
         newMonster->next = NULL;
@@ -144,45 +144,45 @@ void setUpGame() {
         printf("ERROR: setUpGame(): could not allocate memory for monster object(s).");
 }
 
-void handleInput(int *cinput, int *out_bRunning) {
-    switch (*cinput | 0x20) {
+void handleInput(int *input, int *out_running) {
+    switch (*input | 0x20) {
         case 'x':
-            *out_bRunning = 0;
+            *out_running = 0;
             break;
         case 'w':
-            moveGameObject(pPlayer, pPlayer->posX, pPlayer->posY - 1);
+            moveGameObject(player, player->posX, player->posY - 1);
             break;
         case 's':
-            moveGameObject(pPlayer, pPlayer->posX, pPlayer->posY + 1);
+            moveGameObject(player, player->posX, player->posY + 1);
             break;
         case 'a':
-            moveGameObject(pPlayer, pPlayer->posX - 1, pPlayer->posY);
+            moveGameObject(player, player->posX - 1, player->posY);
             break;
         case 'd':
-            moveGameObject(pPlayer, pPlayer->posX + 1, pPlayer->posY);
+            moveGameObject(player, player->posX + 1, player->posY);
             break;
     }
 }
 
 void shutDownGame() {
-    struct GameObject* pDeletedMonster = NULL;
+    struct GameObject* deletedMonster = NULL;
 
-    if (pPlayer) {
-        free(pPlayer);
-        pPlayer = NULL;
+    if (player) {
+        free(player);
+        player = NULL;
     }
-    while (pListOfMonsters != NULL ) {
-        if( pListOfMonsters->next == NULL) {
-            free(pListOfMonsters);
-            pListOfMonsters = NULL;
+    while (monsters != NULL ) {
+        if (monsters->next == NULL) {
+            free(monsters);
+            monsters = NULL;
         }
         else {
             // we haven't reached the last remaining element yet, so go on...
-            pDeletedMonster = pListOfMonsters;
+            deletedMonster = monsters;
             // redirect the list entry...
-            pListOfMonsters = pListOfMonsters->next;
+            monsters = monsters->next;
             // free memory...
-            free(pDeletedMonster);
+            free(deletedMonster);
         }
     }
 
@@ -194,8 +194,8 @@ int main() {
     printf("Tutorium 3, ASCII Dungeon v0.1\n");
     printf("============================================\n");
 
-    int bRunning = 1;
-    int cinput;
+    int running = 1;
+    int input;
 
 
 	drawBoard();
@@ -205,11 +205,11 @@ int main() {
     //printf("-- Press any key to start --\n");
     //printf("-- Press x to quit --\n");
 
-    while (bRunning) {
+    while (running) {
 		if (!kbhit)
            continue;
-        cinput = getch();
-        handleInput(&cinput,&bRunning);
+        input = getch();
+        handleInput(&input,&running);
     }
 
     shutDownGame();
