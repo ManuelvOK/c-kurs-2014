@@ -14,7 +14,7 @@ struct GameObject {
 };
 
 /* global variables
- * yOff == # of \n printed in the beginning in function main()
+ * yOff == # of "\n"" printed in the beginning in function main()
  */
 const unsigned int cols = 20;
 const unsigned int rows = 10;
@@ -145,18 +145,23 @@ void setUpGame() {
 }
 
 void handleInput(int *cinput, int *out_bRunning) {
-    if (*cinput == 'x' || *cinput == 'X') {
-        *out_bRunning = 0;
-        return;
+    switch (*cinput | 0x20) {
+        case 'x':
+            *out_bRunning = 0;
+            break;
+        case 'w':
+            moveGameObject(pPlayer, pPlayer->posX, pPlayer->posY - 1);
+            break;
+        case 's':
+            moveGameObject(pPlayer, pPlayer->posX, pPlayer->posY + 1);
+            break;
+        case 'a':
+            moveGameObject(pPlayer, pPlayer->posX - 1, pPlayer->posY);
+            break;
+        case 'd':
+            moveGameObject(pPlayer, pPlayer->posX + 1, pPlayer->posY);
+            break;
     }
-    if (*cinput == 'w' || *cinput == 'W')
-        moveGameObject(pPlayer, pPlayer->posX, pPlayer->posY - 1);
-    if (*cinput == 's' || *cinput == 'S')
-        moveGameObject(pPlayer, pPlayer->posX, pPlayer->posY + 1);
-    if (*cinput == 'a' || *cinput == 'A')
-        moveGameObject(pPlayer, pPlayer->posX - 1, pPlayer->posY);
-    if (*cinput == 'd' || *cinput == 'D')
-        moveGameObject(pPlayer, pPlayer->posX + 1, pPlayer->posY);
 }
 
 void shutDownGame() {
