@@ -8,9 +8,9 @@ int main(int argc, const char *argv[]) {
     puts("From letter #?");
     scanf("%d", &n);
     n--;
-    for (i = n; i < 255; printf("%c", input[i++]));
+    for (i = n; i < 255; printf("%c", input[i++])); //1
     printf("\n");
-    for (i = n; i < 255; printf("%c", *(input + i++)));
+    for (i = n; i < 255; printf("%c", *(input + i++))); //2
     printf("\n");
     printf("%s\n", input + n);
     printf("%s\n", &(input[n]));
