@@ -36,5 +36,6 @@ int main(int argc, const char *argv[]) {
     array1 = allocate(n);
     setElement(&array1, 10, 42);
     printArray(array1);
+    free(array1.data);
     return 0;
 }

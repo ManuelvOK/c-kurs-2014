@@ -16,22 +16,49 @@ struct ListElement* init(int val) {
 }
 
 // add new element at the end of the list
-void append(struct ListElement* current, int val) {
-    if (current == NULL)
-        return;
-    for (; current->next != NULL; current = current->next);
-    current->next = init(val);
+int append(struct ListElement* elem, int val) {
+    if (elem->next == NULL) {
+        elem->next = init(val);
+        return 1;
+    }
+    return 0;
 }
 
-// print all ListElements
-void printList(struct ListElement* current) {
-    for (; current != NULL; current = current->next)
-        printf("%d\n", current->val);
+// print a list elements
+void print(struct ListElement* elem) {
+    printf("%d\n", elem->val);
+}
+
+// delete list element
+void delete(struct ListElement* elem) {
+    free(elem);
+}
+
+// iterate through list and apply f() on each list element
+void mapProc(void (*f)(struct ListElement*), struct ListElement* start) {
+    struct ListElement* current;
+    for (current = start; current != NULL; current = current->next) {
+        f(current);
+    }
+}
+
+void mapFunc(int (*f)(struct ListElement*, int), struct ListElement* start, int value) {
+    struct ListElement* current;
+    for (current = start; current != NULL; current = current->next) {
+        if (f(current, value))
+            return;
+    }
 }
 
 int main(int argc, const char *argv[]) {
     struct ListElement* head = init(42);
-    append(head, 23);
-    printList(head);
+    mapFunc(append, head, 23);
+    mapProc(print, head);
+    mapProc(delete, head);
+    /*
+     * Run the program for multiple times and see what happens here.
+     * Do you know why?
+     */
+    mapProc(print, head);
     return 0;
 }
