@@ -16,65 +16,88 @@ struct ListElement* init(int value) {
 }
 
 // add new element at the end of the list
-int append(struct ListElement* elem, int value) {
-    if (elem->next == NULL) {
-        elem->next = init(value);
-        return 1;
-    }
-    return 0;
+void append(struct ListElement* start, int value) {
+    struct ListElement* current;
+    if (start == NULL)
+        return;
+    for (current = start; current->next != NULL; current = current->next);
+    current->next = init(value);
 }
 
-// return the value of the i-th list element
-int get(struct ListElement* elem, int index) {
-    static int position = 0;
-    if (position == index) {
-        position = 0;
-        return elem->value;
-    }
-    else {
-        position++;
-        return 0;
-    }
+// create an integer sequence from first to last
+struct ListElement* sequence(int first, int last) {
+    struct ListElement* current;
+    for (current = init(first++); first <= last; first++)
+        append(current, first); //  why is this inefficient?
+    return current;
+}
+
+// delete all list elements beginning from start
+void delete(struct ListElement* start) {
+    struct ListElement* current;
+    for (current = start; current != NULL; current = current->next)
+        free(current);
 }
 
 // print a list elements
 void print(struct ListElement* elem) {
-    printf("%d\n", elem->value);
+    static int index = 0;
+    if (index == 0)
+        printf("[");
+    printf("%d", elem->value);
+    if (elem->next != NULL) {
+        printf(", ");
+        index++;
+    }
+    else {
+        printf("]\n");
+        index = 0;
+    }
 }
 
-// delete list element
-void delete(struct ListElement* elem) {
-    free(elem);
+void incr(struct ListElement* elem) {
+    elem->value++;
+}
+
+int mult(int a, int b) {
+    return a * b;
+}
+
+int add(int a, int b) {
+    return a + b;
 }
 
 // iterate through list and apply f() on each list element
-void mapProc(void (*f)(struct ListElement*), struct ListElement* start) {
+void map(void (*f)(struct ListElement*), struct ListElement* start) {
     struct ListElement* current;
     for (current = start; current != NULL; current = current->next) {
         f(current);
     }
 }
 
-int mapFunc(int (*f)(struct ListElement*, int), struct ListElement* start, int value) {
+// iterate through list and apply f() on each list element,
+// the parameters being value and the last result of f()
+int fold(int (*f)(int, int), struct ListElement* start, int value) {
     struct ListElement* current;
     for (current = start; current != NULL; current = current->next) {
-        int result = f(current, value);
-        if (result)
-            return result;
+        value = f(current->value, value);
     }
-    return 0;
+    return value;
+}
+
+int inputListLength() {
+    int n;
+    puts("Create sequence from 1 to ?");
+    scanf("%d", &n);
+    return n;
 }
 
 int main(int argc, const char *argv[]) {
-    struct ListElement* head = init(42);
-    mapFunc(append, head, 23);
-    mapProc(print, head);
-    printf("2nd element: %d\n", mapFunc(get, head, 1));
-    mapProc(delete, head);
-    /*
-     * Run the program for multiple times and see what happens here.
-     * Do you know why?
-     */
-    mapProc(print, head);
+    int n = inputListLength();
+    struct ListElement* head = sequence(1, n);
+    map(print, head);
+    printf("Factorial of %d: %d\n", n, fold(mult, head, 1));
+    printf("Sum of 1,...,%d: %d\n", n, fold(add, head, 0));
+    delete(head);
     return 0;
 }
