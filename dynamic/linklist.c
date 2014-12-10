@@ -72,12 +72,23 @@ int isZero(struct ListElement* current) {
 	return current->value == 0;
 }
 
-
+// iterate through list and delete all elements
+// if f() returns true (1)
 void filter(int (*f)(struct ListElement*),
-		struct ListElement* head) {
+		struct ListElement** head) {
 	struct ListElement* current;
-	for (;;) {
+	while (f(*head)) {
+		struct ListElement* toDelete = *head;
+		*head = (*head)->next;
+		free(toDelete);
+	}
 
+	for (current = *head; current != 0; current = current->next) {
+		while (current->next && f(current->next)) {
+			struct ListElement* toDelete = current->next;
+			current->next = current->next->next;
+			free(toDelete);
+		}
 	}
 }
 
@@ -122,8 +133,13 @@ int inputListLength() {
 int main(int argc, const char *argv[]) {
     int n = inputListLength();
     struct ListElement* head = sequence(1, n);
+	append(head, 0);
+	append(head, 0);
+	append(head, 0);
+	append(head, 0);
     map(print, head);
-	cutOut(head, 5);
+	//cutOut(head, 5);
+	filter(isZero, &head);
 	map(print, head);
     //printf("Factorial of %d: %d\n", n, fold(mult, head, 1));
     //printf("Sum of 1,...,%d: %d\n", n, fold(add, head, 0));
