@@ -39,6 +39,7 @@ void delete(struct ListElement* start) {
         free(current);
 }
 
+
 // print a list elements
 void print(struct ListElement* elem) {
     static int index = 0;
@@ -65,6 +66,32 @@ int mult(int a, int b) {
 
 int add(int a, int b) {
     return a + b;
+}
+
+int isZero(struct ListElement* current) {
+	return current->value == 0;
+}
+
+
+void filter(int (*f)(struct ListElement*),
+		struct ListElement* head) {
+	struct ListElement* current;
+	for (;;) {
+
+	}
+}
+
+
+void cutOut(struct ListElement* start, int i){
+	struct ListElement* current;
+	for (current = start; i > 2; i--) {
+		if (current->next == NULL)
+			return;
+		current = current->next;
+	}
+	struct ListElement* toDelete = current->next;
+	current->next = current->next->next;
+	free(toDelete);
 }
 
 // iterate through list and apply f() on each list element
@@ -96,8 +123,10 @@ int main(int argc, const char *argv[]) {
     int n = inputListLength();
     struct ListElement* head = sequence(1, n);
     map(print, head);
-    printf("Factorial of %d: %d\n", n, fold(mult, head, 1));
-    printf("Sum of 1,...,%d: %d\n", n, fold(add, head, 0));
+	cutOut(head, 5);
+	map(print, head);
+    //printf("Factorial of %d: %d\n", n, fold(mult, head, 1));
+    //printf("Sum of 1,...,%d: %d\n", n, fold(add, head, 0));
     delete(head);
     return 0;
 }
