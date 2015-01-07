@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "conio.h"
+// set the terminal cursor to position x, y
 #define move(y,x) printf("\033[%d;%dH", x, y)
 #define clear printf(" ")
 
+// basic datastructure to store all kinds of game objects
 struct GameObject {
     int posX;
     int posY;
@@ -15,6 +17,7 @@ struct GameObject {
 
 /* global variables
  * yOff == # of "\n"" printed in the beginning in function main()
+ *  - important for move macro
  */
 const unsigned int cols = 20;
 const unsigned int rows = 10;
@@ -22,79 +25,78 @@ const unsigned int yOff = 4;
 struct GameObject* player = NULL;
 struct GameObject* monsters = NULL;
 
+// move a game object to a new position and display it on the screen
 void moveGameObject(struct GameObject* obj, unsigned int x, unsigned int y) {
-    if( !obj)
+    if(!obj)
         return;
+    // object must stay inside the dungeon
     if (x >= cols || y >= rows || x < 0 || y < 0)
-        // no one leaves the dungeon!
         return;
+    // clear the old position
 	move(obj->posX + 2, obj->posY + 2 + yOff);
 	clear;
     obj->posX = x;
     obj->posY = y;
+    // print the object at the new position
 	move(obj->posX + 2, obj->posY + 2 + yOff);
 	printf("%c", *(obj->symbol));
+    // get the cursor out of the dungeon
     move(0,rows+yOff+3);
 }
 
-void addMonster(struct GameObject* newMonster) {
-    struct GameObject* currentMonster = NULL;
-
-    if (monsters == NULL) {
-        // If there are no monsters yet, add the first as the head of the list.
-        monsters = newMonster;
+// append a new monster to the existing list of monsters
+void addMonster(int health, char* name, char* symbol, int posX, int posY) {
+    static struct GameObject* latestMonster = NULL;
+    // allocate memory for and initialize the monster
+    struct GameObject* newMonster =
+       (struct GameObject*) malloc(sizeof(struct GameObject));
+    if (newMonster == NULL)
+        exit(EXIT_FAILURE);
+    newMonster->health = health;
+    newMonster->name = name;
+    newMonster->symbol = symbol;
+    newMonster->posX = posX;
+    newMonster->posY = posY;
+    newMonster->next = NULL;
+    // move it to its position in order to display it
+    moveGameObject(newMonster, posX, posY);
+    // if no monster has been added yet, begin with the head of the list
+    if (latestMonster == NULL) {
+        latestMonster = newMonster;
+        monsters = latestMonster;
     }
+    // we have a new latest monster
     else {
-        /* If we can access the head of the list, we can easily access all other list elements
-         * by using the "next" pointer within each GameObject.
-         */
-        currentMonster = monsters;
-        while (currentMonster != NULL ) {
-            if (currentMonster->next == NULL) {
-                // We reached the last element of the list, append the new one,
-                // then break the loop.
-                currentMonster->next = newMonster;
-                break;
-            }
-            else {
-                // we haven't reached the last element yet, so go on...
-                currentMonster = currentMonster->next;
-            }
-        }
+        latestMonster->next = newMonster;
+        latestMonster = latestMonster->next;
     }
 }
 
+// display a visual representation of the dungeon in the terminal
 void drawBoard(void) {
 	unsigned int i, j;
+    // draw the top border
 	for (i = 0; i < cols+2; i++)
 		printf("-");
 	printf("\n");
-
+    // draw all the rows where objects can move to
 	for (j = 0; j < rows; j++) {
 		printf("|");
 		for(i = 0; i < cols; i++)
 			printf(" ");
 		printf("|\n");
 	}
-
+    // draw the bottom border
 	for (i = 0; i < cols+2; i++)
 		printf("-");
 	printf("\n");
 }
 
+// create the player and monster objects
 void setUpGame() {
     struct GameObject* newMonster = NULL;
-
-    /* Let's add our hero to the game by allocating the required amount of memory on the HEAP.
-     * By doing so, we can access the new "object" through a pointer from where ever we want
-     * until we decide to wipe it out again.
-     * Remember: If you use malloc(sizeof("whatever")), you must never redirect the pointer
-     *           you received from malloc() until you cleared the reserved memory with free().
-     *           Otherwise, the reserved memory becomes unreachable, what is pretty bad indeed.
-     *           Practice safe coding!!!
-     */
+    // init the player
     player = (struct GameObject*) malloc(sizeof(*player));
-    // After malloc(), always check if the allocation process succeeded.
     if (player) {
         player->health = 100;
         player->name = "Jack Black";
@@ -105,50 +107,21 @@ void setUpGame() {
         moveGameObject(player, player->posX, player->posY);
 
     }
-    else {
-        /* If the memory allocation process failed for some reason, display an error message.
-         * An error message should provide information about where the error occured.
-         */
-        printf("ERROR: setUpGame(): could not allocate memory for player object.");
-    }
-    // ----------------- MONSTER'S SECTION BELOW  -----------------
-    // now, add the first monster to the list of all monsters. He's the evil boss!
-    newMonster = (struct GameObject*) malloc(sizeof(struct GameObject));
-    if (newMonster) {
-        newMonster->health = 100;
-        newMonster->name = "Aaargghh!!!";
-        newMonster->symbol = "x";
-        newMonster->next = NULL;
-        newMonster->posX = 8;
-        newMonster->posY = 8;
-        moveGameObject(newMonster, newMonster->posX, newMonster->posY);
-
-        addMonster(newMonster);
-    }
     else
-        printf("ERROR: setUpGame(): could not allocate memory for monster object.");
-    // add another monster to the list.
-    newMonster = (struct GameObject*) malloc(sizeof(struct GameObject));
-    if (newMonster) {
-        newMonster->health = 100;
-        newMonster->name = "Kevin";
-        newMonster->symbol = "$";
-        newMonster->next = NULL;
-        newMonster->posX = 0;
-        newMonster->posY = 0;
-        moveGameObject(newMonster, newMonster->posX, newMonster->posY);
-
-        addMonster(newMonster);
-    }
-    else
-        printf("ERROR: setUpGame(): could not allocate memory for monster object(s).");
+        exit(EXIT_FAILURE);
+    // add some Monsters
+    addMonster(100, "Aaargghh!!!", "x", 8, 8);
+    addMonster(100, "Kevin", "$", 0, 0);
 }
 
-void handleInput(int *input, int *out_running) {
-    switch (*input | 0x20) {
+// check user input
+void handleInput(char input, int *running) {
+    switch (input | 0x20) { // 0x20 is 32 in dec => allow for great letters as well
         case 'x':
-            *out_running = 0;
+            // x key means "exit game"
+            *running = 0;
             break;
+        // if one of WASD was pressed, move the player into the appropriate direction
         case 'w':
             moveGameObject(player, player->posX, player->posY - 1);
             break;
@@ -164,52 +137,43 @@ void handleInput(int *input, int *out_running) {
     }
 }
 
+// free all memory we have allocated
 void shutDownGame() {
     struct GameObject* deletedMonster = NULL;
-
-    if (player) {
+    // free the memory of struct GameObject player
+    if (player)
         free(player);
-        player = NULL;
-    }
-    while (monsters != NULL ) {
-        if (monsters->next == NULL) {
-            free(monsters);
-            monsters = NULL;
-        }
-        else {
-            // we haven't reached the last remaining element yet, so go on...
-            deletedMonster = monsters;
-            // redirect the list entry...
-            monsters = monsters->next;
-            // free memory...
-            free(deletedMonster);
-        }
-    }
-
+    // free the list of monsters
+    for (deletedMonster = monsters;
+         deletedMonster != NULL;
+         deletedMonster = monsters->next, monsters = monsters->next)
+        free(deletedMonster);
 }
 
 int main() {
 	system("clear");
     printf("\n============================================\n");
-    printf("Tutorium 3, ASCII Dungeon v0.1\n");
+    printf("2D Retro Dungeon\n");
     printf("============================================\n");
 
     int running = 1;
-    int input;
-
+    char input;
 
 	drawBoard();
     setUpGame();
 
-    //printf("\nYou are J. Walk the ASCII Dungeon and watch out for the monsters!\n\n");
-    //printf("-- Press any key to start --\n");
-    //printf("-- Press x to quit --\n");
-
+    /* main loop
+     * while the game is running, check for input
+     */
     while (running) {
+        // if there was hit no key, check again
 		if (!kbhit)
            continue;
+        // there was hit a key, read it as a single letter from the standard
+        // input
         input = getch();
-        handleInput(&input,&running);
+        // now handle that input ;-)
+        handleInput(input, &running);
     }
 
     shutDownGame();

@@ -9,6 +9,8 @@ struct DynArray {
 struct DynArray allocate(int size) {
     struct DynArray new;
     new.data = (int*) calloc(size, sizeof(int));
+    if (new.data == NULL)
+        exit(EXIT_FAILURE);
     new.size = size;
     return new;
 }

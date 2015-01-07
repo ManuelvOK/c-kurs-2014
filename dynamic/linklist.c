@@ -10,6 +10,8 @@ struct ListElement {
 struct ListElement* init(int value) {
     struct ListElement* new =
         (struct ListElement*) malloc(sizeof(struct ListElement));
+    if (new == NULL)
+        exit(EXIT_FAILURE);
     new->value = value;
     new->next = NULL;
     return new;
@@ -39,8 +41,7 @@ void delete(struct ListElement* start) {
         free(current);
 }
 
-
-// print a list elements
+// print a list element
 void print(struct ListElement* elem) {
     static int index = 0;
     if (index == 0)
